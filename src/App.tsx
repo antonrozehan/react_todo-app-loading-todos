@@ -2,15 +2,22 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useMemo, useState } from 'react';
 import { UserWarning } from './UserWarning';
+import { ErrorNotification } from './ErrorNotification';
+import { FilterList } from './FilterList';
+import { TodoList } from './TodoList';
 import { getTodos, USER_ID } from './api/todos';
+import { ErrorMessage } from './types/ErrorMessage';
+import { FilterType } from './types/FilterType';
 import { Todo } from './types/Todo';
-
-type FilterType = 'all' | 'active' | 'completed';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<FilterType>('all');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<ErrorMessage | ''>('');
+
+  const handleFilterChange = (nextFilter: FilterType) => {
+    setFilter(nextFilter);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -25,7 +32,7 @@ export const App: React.FC = () => {
         }
       } catch {
         if (isMounted) {
-          setErrorMessage('Unable to load todos');
+          setErrorMessage(ErrorMessage.UnableToLoadTodos);
         }
       }
     };
@@ -84,7 +91,6 @@ export const App: React.FC = () => {
             }`}
             data-cy="ToggleAllButton"
           />
-
           <form>
             <input
               data-cy="NewTodoField"
@@ -96,44 +102,7 @@ export const App: React.FC = () => {
           </form>
         </header>
 
-        {visibleTodos.length > 0 && (
-          <section className="todoapp__main" data-cy="TodoList">
-            {visibleTodos.map(todo => (
-              <div
-                key={todo.id}
-                data-cy="Todo"
-                className={`todo ${todo.completed ? 'completed' : ''}`}
-              >
-                <label className="todo__status-label">
-                  <input
-                    data-cy="TodoStatus"
-                    type="checkbox"
-                    className="todo__status"
-                    checked={todo.completed}
-                    readOnly
-                  />
-                </label>
-
-                <span data-cy="TodoTitle" className="todo__title">
-                  {todo.title}
-                </span>
-
-                <button
-                  type="button"
-                  className="todo__remove"
-                  data-cy="TodoDelete"
-                >
-                  ×
-                </button>
-
-                <div data-cy="TodoLoader" className="modal overlay">
-                  <div className="modal-background has-background-white-ter" />
-                  <div className="loader" />
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
+        {visibleTodos.length > 0 && <TodoList todos={visibleTodos} />}
 
         {todos.length > 0 && (
           <footer className="todoapp__footer" data-cy="Footer">
@@ -141,32 +110,7 @@ export const App: React.FC = () => {
               {activeTodosCount} item{activeTodosCount === 1 ? '' : 's'} left
             </span>
 
-            <nav className="filter" data-cy="Filter">
-              {['all', 'active', 'completed'].map(filterType => (
-                <a
-                  key={filterType}
-                  href={filterType === 'all' ? '#/' : `#/${filterType}`}
-                  className={`filter__link ${filter === filterType ? 'selected' : ''}`}
-                  data-cy={
-                    filterType === 'all'
-                      ? 'FilterLinkAll'
-                      : filterType === 'active'
-                        ? 'FilterLinkActive'
-                        : 'FilterLinkCompleted'
-                  }
-                  onClick={event => {
-                    event.preventDefault();
-                    setFilter(filterType as FilterType);
-                  }}
-                >
-                  {filterType === 'all'
-                    ? 'All'
-                    : filterType === 'active'
-                      ? 'Active'
-                      : 'Completed'}
-                </a>
-              ))}
-            </nav>
+            <FilterList filter={filter} onFilterChange={handleFilterChange} />
 
             <button
               type="button"
@@ -180,20 +124,10 @@ export const App: React.FC = () => {
         )}
       </div>
 
-      <div
-        data-cy="ErrorNotification"
-        className={`notification is-danger is-light has-text-weight-normal ${
-          errorMessage ? '' : 'hidden'
-        }`}
-      >
-        <button
-          data-cy="HideErrorButton"
-          type="button"
-          className="delete"
-          onClick={() => setErrorMessage('')}
-        />
-        {errorMessage}
-      </div>
+      <ErrorNotification
+        errorMessage={errorMessage}
+        onHide={() => setErrorMessage('')}
+      />
     </div>
   );
 };
