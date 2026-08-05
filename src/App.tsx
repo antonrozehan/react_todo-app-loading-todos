@@ -78,7 +78,9 @@ export const App: React.FC = () => {
           <button
             type="button"
             className={`todoapp__toggle-all ${
-              todos.length > 0 && todos.every(todo => todo.completed) ? 'active' : ''
+              todos.length > 0 && todos.every(todo => todo.completed)
+                ? 'active'
+                : ''
             }`}
             data-cy="ToggleAllButton"
           />
@@ -116,7 +118,11 @@ export const App: React.FC = () => {
                   {todo.title}
                 </span>
 
-                <button type="button" className="todo__remove" data-cy="TodoDelete">
+                <button
+                  type="button"
+                  className="todo__remove"
+                  data-cy="TodoDelete"
+                >
                   ×
                 </button>
 
